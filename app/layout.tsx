@@ -12,7 +12,7 @@ import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
 
 export const metadata: Metadata = {
-  title: "LCPT — 密码学与计算机科学",
+  title: "LCPT的博客",
   description: "Personal blog about cryptography and computer science",
 };
 
