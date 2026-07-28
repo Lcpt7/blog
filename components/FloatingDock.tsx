@@ -24,6 +24,7 @@ export default function FloatingDock() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const dockRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const touchMoveThrottle = useRef(0);
 
   const setItemRef = useCallback((id: string, el: HTMLElement | null) => {
     if (el) itemRefs.current.set(id, el);
@@ -57,6 +58,41 @@ export default function FloatingDock() {
     setHoveredId(null);
   };
 
+  // --- Touch support for mobile ---
+  const updateFromClientX = useCallback((clientX: number) => {
+    const rect = dockRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setMouseX(clientX - rect.left);
+
+    let found: string | null = null;
+    itemRefs.current.forEach((el, id) => {
+      const r = el.getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right) {
+        found = id;
+      }
+    });
+    setHoveredId(found);
+  }, []);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (touch) updateFromClientX(touch.clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    const now = Date.now();
+    if (now - touchMoveThrottle.current < 16) return;
+    touchMoveThrottle.current = now;
+    const touch = e.touches[0];
+    if (touch) updateFromClientX(touch.clientX);
+  };
+
+  const onTouchEnd = () => {
+    setMouseX(-999);
+    setHoveredId(null);
+  };
+  // --- End touch support ---
+
   const getScale = (el: HTMLElement | undefined): number => {
     if (!el || !dockRef.current || mouseX === -999) return 1;
     const dockRect = dockRef.current.getBoundingClientRect();
@@ -81,12 +117,17 @@ export default function FloatingDock() {
         className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-700 ${
           visible ? "translate-y-0 opacity-100" : "-translate-y-28 opacity-0"
         }`}
+        style={{ WebkitTapHighlightColor: "transparent" }}
       >
         <div
           ref={dockRef}
           onMouseMove={onMouseMove}
           onMouseLeave={onMouseLeave}
-          className="vision-glass flex items-center gap-2 rounded-full px-4 py-3 shadow-2xl"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          className="vision-glass flex items-center gap-2 rounded-full px-4 py-3 shadow-2xl select-none"
+          style={{ touchAction: "pan-y" }}
         >
           {items.map((item) => {
             const Icon = item.icon;
@@ -110,6 +151,7 @@ export default function FloatingDock() {
                       width: `${46 + (s - 1) * 24}px`,
                       height: `${46 + (s - 1) * 24}px`,
                       zIndex: s > 1.2 ? 10 : 1,
+                      WebkitTapHighlightColor: "transparent",
                     }}
                   >
                     <span
@@ -145,6 +187,7 @@ export default function FloatingDock() {
                   height: `${46 + (getScale(itemRefs.current.get("theme")) - 1) * 24}px`,
                   zIndex: getScale(itemRefs.current.get("theme")) > 1.2 ? 10 : 1,
                   color: hoveredId === "theme" ? "var(--color-foreground)" : "var(--color-muted)",
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
                 <span
