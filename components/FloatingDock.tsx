@@ -13,7 +13,7 @@ const GithubIcon = () => (
 const items = [
   { id: "home", label: "首页", icon: Home, onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
   { id: "blog", label: "博客", icon: FileText, onClick: () => document.getElementById("blog")?.scrollIntoView({ behavior: "smooth" }) },
-  { id: "works", label: "作品集", icon: Briefcase, href: "https://photoworks.pages.dev/" },
+  { id: "works", label: "作品集", icon: Briefcase, href: "https://photographs.lcpt7.top/" },
   { id: "github", label: "GitHub", icon: GithubIcon, href: "https://github.com/Lcpt7" },
 ];
 
