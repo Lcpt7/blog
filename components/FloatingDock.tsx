@@ -25,6 +25,7 @@ export default function FloatingDock() {
   const dockRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
   const touchMoveThrottle = useRef(0);
+  const ignoreMouseRef = useRef(false);
 
   const setItemRef = useCallback((id: string, el: HTMLElement | null) => {
     if (el) itemRefs.current.set(id, el);
@@ -49,11 +50,13 @@ export default function FloatingDock() {
   }, []);
 
   const onMouseMove = (e: React.MouseEvent) => {
+    if (ignoreMouseRef.current) return;
     const rect = dockRef.current?.getBoundingClientRect();
     if (rect) setMouseX(e.clientX - rect.left);
   };
 
   const onMouseLeave = () => {
+    if (ignoreMouseRef.current) return;
     setMouseX(-999);
     setHoveredId(null);
   };
@@ -75,6 +78,7 @@ export default function FloatingDock() {
   }, []);
 
   const onTouchStart = (e: React.TouchEvent) => {
+    ignoreMouseRef.current = true;
     const touch = e.touches[0];
     if (touch) updateFromClientX(touch.clientX);
   };
@@ -90,8 +94,22 @@ export default function FloatingDock() {
   const onTouchEnd = () => {
     setMouseX(-999);
     setHoveredId(null);
+    // Re-enable mouse events after a delay, once synthesized mouse events have passed
+    setTimeout(() => { ignoreMouseRef.current = false; }, 500);
   };
   // --- End touch support ---
+
+  // Also reset the ignore flag if the mouse actually leaves the window
+  useEffect(() => {
+    const onGlobalMouseMove = () => {
+      if (ignoreMouseRef.current) {
+        // A real mouse movement means we can trust mouse events again
+        ignoreMouseRef.current = false;
+      }
+    };
+    window.addEventListener("mousemove", onGlobalMouseMove);
+    return () => window.removeEventListener("mousemove", onGlobalMouseMove);
+  }, []);
 
   const getScale = (el: HTMLElement | undefined): number => {
     if (!el || !dockRef.current || mouseX === -999) return 1;
@@ -102,6 +120,16 @@ export default function FloatingDock() {
     if (dist > 140) return 1;
     const factor = 1 - Math.min(dist / 140, 1);
     return 1 + (1 - Math.pow(1 - factor, 2)) * 0.7;
+  };
+
+  const handleMouseEnter = (id: string) => {
+    if (ignoreMouseRef.current) return;
+    setHoveredId(id);
+  };
+
+  const handleMouseLeave = () => {
+    if (ignoreMouseRef.current) return;
+    setHoveredId(null);
   };
 
   const toggleTheme = () => {
@@ -144,8 +172,8 @@ export default function FloatingDock() {
                     onClick={(e) => {
                       if (item.onClick) { e.preventDefault(); item.onClick(); }
                     }}
-                    onMouseEnter={() => setHoveredId(item.id)}
-                    onMouseLeave={() => setHoveredId(null)}
+                    onMouseEnter={() => handleMouseEnter(item.id)}
+                    onMouseLeave={handleMouseLeave}
                     className="relative flex items-center justify-center rounded-full transition-all duration-75"
                     style={{
                       width: `${46 + (s - 1) * 24}px`,
@@ -179,8 +207,8 @@ export default function FloatingDock() {
               <button
                 ref={(el) => setItemRef("theme", el)}
                 onClick={toggleTheme}
-                onMouseEnter={() => setHoveredId("theme")}
-                onMouseLeave={() => setHoveredId(null)}
+                onMouseEnter={() => handleMouseEnter("theme")}
+                onMouseLeave={handleMouseLeave}
                 className="relative flex items-center justify-center rounded-full transition-all duration-75"
                 style={{
                   width: `${46 + (getScale(itemRefs.current.get("theme")) - 1) * 24}px`,
