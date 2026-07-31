@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllPosts } from "@/lib/posts";
+import BorderGlow from "@/components/ui/BorderGlow";
 
 export default function PostsPage() {
   const posts = getAllPosts();
@@ -32,6 +33,16 @@ export default function PostsPage() {
           <div className="space-y-4">
             {posts.map((post) => (
               <Link key={post.slug} href={`/posts/${post.slug}`} className="group block">
+                <BorderGlow
+                  edgeSensitivity={30}
+                  glowColor="40 80 80"
+                  backgroundColor="#120F17"
+                  borderRadius={28}
+                  glowRadius={40}
+                  glowIntensity={1.0}
+                  coneSpread={25}
+                  colors={['#c084fc', '#f472b6', '#38bdf8']}
+                >
                 <article className="lg-card p-5 sm:p-7">
                   <div className="flex items-center gap-3 mb-2 flex-wrap" style={{ position: "relative", zIndex: 2 }}>
                     <span className="accent-dot" />
@@ -66,6 +77,7 @@ export default function PostsPage() {
                     </p>
                   )}
                 </article>
+                </BorderGlow>
               </Link>
             ))}
           </div>

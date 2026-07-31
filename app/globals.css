@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./border-glow.css";
 
 @theme inline {
   --color-background: #050508;
@@ -21,8 +22,7 @@ html {
   /* Liquid Glass tokens */
   --lg-bg: rgba(255, 255, 255, 0.035);
   --lg-border: rgba(255, 255, 255, 0.08);
-  --lg-shine: rgba(255, 255, 255, 0.07);
-  --lg-glow: rgba(56, 189, 248, 0.05);
+  --color-background-glass: rgba(5, 5, 8, 0.6);
 }
 
 html[data-theme="light"] {
@@ -38,8 +38,7 @@ html[data-theme="light"] {
   --gradient-to: rgba(24, 24, 27, 0.10);
   --lg-bg: rgba(255, 255, 255, 0.50);
   --lg-border: rgba(0, 0, 0, 0.04);
-  --lg-shine: rgba(255, 255, 255, 0.50);
-  --lg-glow: rgba(37, 99, 235, 0.03);
+  --color-background-glass: rgba(245, 245, 250, 0.6);
 }
 
 /* ── Liquid Glass Card ──
@@ -56,26 +55,10 @@ html[data-theme="light"] {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow:
     0 0 0 1px var(--lg-border),
-    0 4px 24px -8px rgba(0, 0, 0, 0.3),
-    0 0 0 8px var(--lg-glow);
+    0 4px 24px -8px rgba(0, 0, 0, 0.3);
 }
 @media (min-width: 640px) {
   .lg-card { border-radius: 1.25rem; }
-}
-.lg-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    var(--lg-shine) 0%,
-    transparent 40%,
-    transparent 60%,
-    var(--lg-shine) 100%
-  );
-  pointer-events: none;
-  z-index: 1;
 }
 .lg-card > * { position: relative; z-index: 2; }
 
@@ -84,8 +67,7 @@ html[data-theme="light"] {
   border-color: rgba(255, 255, 255, 0.14);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.10),
-    0 8px 32px -8px rgba(0, 0, 0, 0.40),
-    0 0 0 12px var(--lg-glow);
+    0 8px 32px -8px rgba(0, 0, 0, 0.40);
   transform: translateY(-1px);
 }
 html[data-theme="light"] .lg-card:hover {

@@ -53,7 +53,11 @@ export default function FloatingDock() {
         router.push("/");
       }
     } else if (id === "blog") {
-      router.push("/posts");
+      if (pathname === "/") {
+        document.getElementById("blog")?.scrollIntoView({ behavior: "smooth" });
+      } else {
+        router.push("/posts");
+      }
     }
   }, [pathname, router]);
 
