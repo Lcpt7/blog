@@ -1,4 +1,7 @@
-﻿import { type ClassValue, clsx } from "clsx";
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -9,41 +12,98 @@ export interface Post {
   slug: string;
   title: string;
   date: string;
-  readTime: string;
   excerpt: string;
   content: string;
+  tags: string[];
 }
 
-export const posts: Post[] = [
-  {
-    slug: "about-this-blog",
-    title: "关于这个博客",
-    date: "2026.07.28",
-    readTime: "5 分钟阅读",
-    excerpt: "一个由 AI 辅助构建的密码学博客，记录一个初学者的兴趣驱动之旅。",
-    content: `
-这是一个关于密码学与计算机科学的个人博客。
+const postsDirectory = path.join(process.cwd(), "content", "posts");
 
-整个网站由 AI 辅助构建——从界面设计到交互实现，从配色方案到动画细节，每一个环节都有 AI 的深度参与。说起来有点奇妙，你此刻正在浏览的这个页面，它的代码、布局、甚至是这段文字本身，都是人与 AI 协作的产物。
+function formatDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-我并不是经验丰富的开发者，而是一名对技术和数学充满好奇的编程爱好者，在密码学领域也刚刚起步。这个博客纯粹是兴趣驱动的产物——我对密码学、数学和计算机科学交汇处的那些优雅结构充满好奇，于是就有了这个地方，用来记录学习过程中的思考和碎片笔记。
+function getReadTime(content: string): string {
+  const text = content.replace(/[#*`\[\]()>\-!|_\n]/g, " ").trim();
+  const words = text.split(/\s+/).filter(Boolean).length;
+  // 中文约 400 字/分钟，英文约 200 词/分钟，折中 350
+  const minutes = Math.max(1, Math.ceil(words / 350));
+  return `${minutes} min`;
+}
 
-密码学是一门迷人的学科。从古希腊的凯撒密码，到如今保护着数十亿通信的椭圆曲线加密，人类对"秘密"的追求从未停止。而零知识证明、同态加密、量子密码学等前沿方向，又在不断拓展着"可能"的边界。
+export function getAllPosts(): Post[] {
+  if (!fs.existsSync(postsDirectory)) return [];
 
-如果你也对这方面感兴趣，欢迎一起交流探讨。这个博客虽然简陋，但每一篇内容都是认真思考后的沉淀。
+  const filenames = fs.readdirSync(postsDirectory);
 
-## 关于我
+  const posts = filenames
+    .filter((filename) => filename.endsWith(".md"))
+    .map((filename) => {
+      const slug = filename.replace(/\.md$/, "");
+      const filePath = path.join(postsDirectory, filename);
+      const fileContents = fs.readFileSync(filePath, "utf-8");
+      const { data, content } = matter(fileContents);
 
-一个对技术和数学充满好奇的初学者。不懂的东西很多，但觉得探索未知的过程本身就很迷人。
+      const date = data.date
+        ? String(data.date)
+        : formatDate(fs.statSync(filePath).mtime);
 
-目前在学习椭圆曲线密码学和零知识证明，偶尔也会写点关于编程语言理论和分布式系统的东西。
+      const tags = data.tags
+        ? (Array.isArray(data.tags) ? data.tags : String(data.tags).split(",").map((t: string) => t.trim()))
+        : [];
 
-## 技术栈
+      return {
+        slug,
+        title: data.title || slug,
+        date,
+        excerpt: data.excerpt || "",
+        content,
+        tags,
+      };
+    })
+    .sort((a, b) => (a.date > b.date ? -1 : 1));
 
-- Next.js + TypeScript + Tailwind CSS
-- 设计和开发全程 AI 辅助（借助 Codex 完成）
+  return posts;
+}
 
-学习之路还很长，但迈出第一步总是最有趣的。
-    `.trim(),
-  },
-];
+export function getPostBySlug(slug: string): Post | null {
+  const filePath = path.join(postsDirectory, `${slug}.md`);
+
+  if (!fs.existsSync(filePath)) return null;
+
+  const fileContents = fs.readFileSync(filePath, "utf-8");
+  const { data, content } = matter(fileContents);
+
+  const date = data.date
+    ? String(data.date)
+    : formatDate(fs.statSync(filePath).mtime);
+
+  const tags = data.tags
+    ? (Array.isArray(data.tags) ? data.tags : String(data.tags).split(",").map((t: string) => t.trim()))
+    : [];
+
+  return {
+    slug,
+    title: data.title || slug,
+    date,
+    excerpt: data.excerpt || "",
+    content,
+    tags,
+  };
+}
+
+export function getAllSlugs(): string[] {
+  if (!fs.existsSync(postsDirectory)) return [];
+
+  return fs
+    .readdirSync(postsDirectory)
+    .filter((filename) => filename.endsWith(".md"))
+    .map((filename) => filename.replace(/\.md$/, ""));
+}
+
+export function getReadTimeForPost(content: string): string {
+  return getReadTime(content);
+}

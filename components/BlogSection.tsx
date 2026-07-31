@@ -1,58 +1,77 @@
-﻿import { posts } from "@/lib/posts";
+import Link from "next/link";
+import { getAllPosts } from "@/lib/posts";
 
 export default function BlogSection() {
-  const post = posts[0];
+  const posts = getAllPosts().slice(0, 3);
+
+  if (posts.length === 0) return null;
 
   return (
-    <section id="blog" className="relative z-[1] py-24 sm:py-32">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6">
-        <div className="mb-10 sm:mb-14 text-center">
-          <span className="font-mono text-xs tracking-[0.2em] uppercase"
-                style={{ color: "var(--color-muted)" }}>
-            博客
+    <section id="blog" className="relative z-[1] py-20 sm:py-28">
+      <div className="mx-auto max-w-2xl px-4 sm:px-6">
+        {/* Section label */}
+        <div className="mb-12 sm:mb-16 text-center">
+          <span className="font-mono text-[11px] tracking-[0.3em] uppercase"
+                style={{ color: "var(--color-muted)", opacity: 0.7 }}>
+            Writing
           </span>
         </div>
 
-        <article className="vision-glass rounded-2xl p-6 backdrop-blur-xl sm:rounded-3xl sm:p-10 md:p-14 shadow-lg transition-all duration-300">
-          <header className="mb-8 sm:mb-10">
-            <div className="flex items-center gap-3 text-[11px] sm:text-xs font-mono"
-                 style={{ color: "var(--color-muted)" }}>
-              <time>{post.date}</time>
-              <span className="h-3 w-px" style={{ background: "var(--liquid-glass-border)" }} />
-              <span>{post.readTime}</span>
-            </div>
-            <h2 className="mt-4 sm:mt-5 text-xl sm:text-2xl md:text-3xl font-light leading-tight"
-                style={{ color: "var(--color-foreground)" }}>
-              <span className="bg-gradient-to-b from-[var(--color-foreground)] via-[var(--color-foreground)]/90 to-[var(--color-foreground)]/40 bg-clip-text text-transparent">
-                {post.title}
-              </span>
-            </h2>
-          </header>
+        <div className="space-y-4">
+          {posts.map((post) => (
+            <Link key={post.slug} href={`/posts/${post.slug}`} className="group block">
+              <article className="lg-card p-5 sm:p-7">
+                {/* Meta */}
+                <div className="flex items-center gap-3 mb-3 flex-wrap" style={{ position: "relative", zIndex: 2 }}>
+                  <span className="accent-dot" />
+                  <time className="text-[11px] font-mono tracking-wider"
+                        style={{ color: "var(--color-muted)" }}>
+                    {post.date}
+                  </time>
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex gap-1.5 flex-wrap">
+                      {post.tags.map((tag) => (
+                        <span key={tag}
+                              className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                              style={{
+                                background: "rgba(56,189,248,0.06)",
+                                color: "var(--color-accent)",
+                                border: "1px solid rgba(56,189,248,0.12)",
+                              }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-          <div className="space-y-4 sm:space-y-5 text-sm sm:text-base leading-relaxed"
-               style={{ color: "var(--color-muted)" }}>
-            {post.content.split("\n").map((line, i) => {
-              if (line.startsWith("## ")) {
-                return (
-                  <h3 key={i} className="!mt-8 sm:!mt-10 !mb-3 text-base sm:text-lg font-medium"
-                      style={{ color: "var(--color-foreground)" }}>
-                    {line.replace("## ", "")}
-                  </h3>
-                );
-              }
-              if (line.startsWith("- ")) {
-                return (
-                  <li key={i} className="ml-5 sm:ml-6 list-disc text-sm sm:text-base"
-                      style={{ color: "var(--color-muted)" }}>
-                    {line.replace("- ", "")}
-                  </li>
-                );
-              }
-              if (line.trim() === "") return <div key={i} className="h-2 sm:h-3" />;
-              return <p key={i} className="leading-[1.8] sm:leading-relaxed">{line}</p>;
-            })}
+                <h2 className="text-lg sm:text-xl font-medium leading-snug transition-colors duration-300 group-hover:text-[var(--color-accent)]"
+                    style={{ color: "var(--color-foreground)", position: "relative", zIndex: 2 }}>
+                  {post.title}
+                </h2>
+                {post.excerpt && (
+                  <p className="mt-2 text-sm leading-relaxed"
+                     style={{ color: "var(--color-muted)", position: "relative", zIndex: 2 }}>
+                    {post.excerpt}
+                  </p>
+                )}
+              </article>
+            </Link>
+          ))}
+        </div>
+
+        {getAllPosts().length > 3 && (
+          <div className="mt-12 text-center">
+            <Link
+              href="/posts"
+              className="vision-glass inline-flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-mono tracking-[0.2em] uppercase transition-all duration-400 hover:scale-105"
+              style={{ color: "var(--color-muted)" }}
+            >
+              全部文章
+              <span style={{ color: "var(--color-accent)" }}>→</span>
+            </Link>
           </div>
-        </article>
+        )}
       </div>
     </section>
   );

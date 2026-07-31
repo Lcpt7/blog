@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Home, FileText, Briefcase, Moon, Sun } from "lucide-react";
 import { TooltipProvider, TooltipRoot, TooltipTrigger, TooltipContent } from "./Tooltip";
@@ -10,14 +11,9 @@ const GithubIcon = () => (
   </svg>
 );
 
-const items = [
-  { id: "home", label: "首页", icon: Home, onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
-  { id: "blog", label: "博客", icon: FileText, onClick: () => document.getElementById("blog")?.scrollIntoView({ behavior: "smooth" }) },
-  { id: "works", label: "作品集", icon: Briefcase, href: "https://photographs.lcpt7.top/" },
-  { id: "github", label: "GitHub", icon: GithubIcon, href: "https://github.com/Lcpt7" },
-];
-
 export default function FloatingDock() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [theme, setTheme] = useState("dark");
   const [visible, setVisible] = useState(true);
   const [mouseX, setMouseX] = useState(-999);
@@ -48,6 +44,18 @@ export default function FloatingDock() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const handleNavigation = useCallback((id: string, href?: string) => {
+    if (id === "home") {
+      if (pathname === "/") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        router.push("/");
+      }
+    } else if (id === "blog") {
+      router.push("/posts");
+    }
+  }, [pathname, router]);
 
   const onMouseMove = (e: React.MouseEvent) => {
     if (ignoreMouseRef.current) return;
@@ -94,16 +102,13 @@ export default function FloatingDock() {
   const onTouchEnd = () => {
     setMouseX(-999);
     setHoveredId(null);
-    // Re-enable mouse events after a delay, once synthesized mouse events have passed
     setTimeout(() => { ignoreMouseRef.current = false; }, 500);
   };
   // --- End touch support ---
 
-  // Also reset the ignore flag if the mouse actually leaves the window
   useEffect(() => {
     const onGlobalMouseMove = () => {
       if (ignoreMouseRef.current) {
-        // A real mouse movement means we can trust mouse events again
         ignoreMouseRef.current = false;
       }
     };
@@ -139,6 +144,12 @@ export default function FloatingDock() {
     localStorage.setItem("theme", next);
   };
 
+  const isActive = (id: string) => {
+    if (id === "home") return pathname === "/";
+    if (id === "blog") return pathname.startsWith("/posts") || pathname.startsWith("/admin");
+    return false;
+  };
+
   return (
     <TooltipProvider delayDuration={0}>
       <div
@@ -157,51 +168,133 @@ export default function FloatingDock() {
           className="vision-glass flex items-center gap-2 rounded-full px-4 py-3 shadow-2xl select-none"
           style={{ touchAction: "pan-y" }}
         >
-          {items.map((item) => {
-            const Icon = item.icon;
-            const s = getScale(itemRefs.current.get(item.id));
+          {/* 首页 */}
+          <TooltipRoot>
+            <TooltipTrigger asChild>
+              <button
+                ref={(el) => setItemRef("home", el)}
+                onClick={() => handleNavigation("home")}
+                onMouseEnter={() => handleMouseEnter("home")}
+                onMouseLeave={handleMouseLeave}
+                className="relative flex items-center justify-center rounded-full transition-all duration-75"
+                style={{
+                  width: `${46 + (getScale(itemRefs.current.get("home")) - 1) * 24}px`,
+                  height: `${46 + (getScale(itemRefs.current.get("home")) - 1) * 24}px`,
+                  zIndex: getScale(itemRefs.current.get("home")) > 1.2 ? 10 : 1,
+                  WebkitTapHighlightColor: "transparent",
+                  color: isActive("home") ? "var(--color-accent)" : hoveredId === "home" ? "var(--color-foreground)" : "var(--color-muted)",
+                }}
+              >
+                <span
+                  className="block transition-all duration-75"
+                  style={{
+                    transform: `scale(${getScale(itemRefs.current.get("home"))}) translateY(${getScale(itemRefs.current.get("home")) > 1 ? -(getScale(itemRefs.current.get("home")) - 1) * 14 : 0}px)`,
+                  }}
+                >
+                  <Home size={20} strokeWidth={1.5} />
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" align="center">首页</TooltipContent>
+          </TooltipRoot>
 
-            return (
-              <TooltipRoot key={item.id}>
-                <TooltipTrigger asChild>
-                  <a
-                    ref={(el) => setItemRef(item.id, el)}
-                    href={item.href}
-                    target={item.href ? "_blank" : undefined}
-                    rel={item.href ? "noopener noreferrer" : undefined}
-                    onClick={(e) => {
-                      if (item.onClick) { e.preventDefault(); item.onClick(); }
-                    }}
-                    onMouseEnter={() => handleMouseEnter(item.id)}
-                    onMouseLeave={handleMouseLeave}
-                    className="relative flex items-center justify-center rounded-full transition-all duration-75"
-                    style={{
-                      width: `${46 + (s - 1) * 24}px`,
-                      height: `${46 + (s - 1) * 24}px`,
-                      zIndex: s > 1.2 ? 10 : 1,
-                      WebkitTapHighlightColor: "transparent",
-                    }}
-                  >
-                    <span
-                      className="block transition-all duration-75"
-                      style={{
-                        transform: `scale(${s}) translateY(${s > 1 ? -(s - 1) * 14 : 0}px)`,
-                        color: hoveredId === item.id ? "var(--color-foreground)" : "var(--color-muted)",
-                      }}
-                    >
-                      <Icon size={20} strokeWidth={1.5} />
-                    </span>
-                  </a>
-                </TooltipTrigger>
-                <TooltipContent side="top" align="center">
-                  {item.label}
-                </TooltipContent>
-              </TooltipRoot>
-            );
-          })}
+          {/* 博客 */}
+          <TooltipRoot>
+            <TooltipTrigger asChild>
+              <button
+                ref={(el) => setItemRef("blog", el)}
+                onClick={() => handleNavigation("blog")}
+                onMouseEnter={() => handleMouseEnter("blog")}
+                onMouseLeave={handleMouseLeave}
+                className="relative flex items-center justify-center rounded-full transition-all duration-75"
+                style={{
+                  width: `${46 + (getScale(itemRefs.current.get("blog")) - 1) * 24}px`,
+                  height: `${46 + (getScale(itemRefs.current.get("blog")) - 1) * 24}px`,
+                  zIndex: getScale(itemRefs.current.get("blog")) > 1.2 ? 10 : 1,
+                  WebkitTapHighlightColor: "transparent",
+                  color: isActive("blog") ? "var(--color-accent)" : hoveredId === "blog" ? "var(--color-foreground)" : "var(--color-muted)",
+                }}
+              >
+                <span
+                  className="block transition-all duration-75"
+                  style={{
+                    transform: `scale(${getScale(itemRefs.current.get("blog"))}) translateY(${getScale(itemRefs.current.get("blog")) > 1 ? -(getScale(itemRefs.current.get("blog")) - 1) * 14 : 0}px)`,
+                  }}
+                >
+                  <FileText size={20} strokeWidth={1.5} />
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" align="center">博客</TooltipContent>
+          </TooltipRoot>
+
+          {/* 作品集 */}
+          <TooltipRoot>
+            <TooltipTrigger asChild>
+              <a
+                ref={(el) => setItemRef("works", el)}
+                href="https://photographs.lcpt7.top/"
+                target="_blank"
+                rel="noopener noreferrer"
+                onMouseEnter={() => handleMouseEnter("works")}
+                onMouseLeave={handleMouseLeave}
+                className="relative flex items-center justify-center rounded-full transition-all duration-75"
+                style={{
+                  width: `${46 + (getScale(itemRefs.current.get("works")) - 1) * 24}px`,
+                  height: `${46 + (getScale(itemRefs.current.get("works")) - 1) * 24}px`,
+                  zIndex: getScale(itemRefs.current.get("works")) > 1.2 ? 10 : 1,
+                  WebkitTapHighlightColor: "transparent",
+                  color: hoveredId === "works" ? "var(--color-foreground)" : "var(--color-muted)",
+                }}
+              >
+                <span
+                  className="block transition-all duration-75"
+                  style={{
+                    transform: `scale(${getScale(itemRefs.current.get("works"))}) translateY(${getScale(itemRefs.current.get("works")) > 1 ? -(getScale(itemRefs.current.get("works")) - 1) * 14 : 0}px)`,
+                  }}
+                >
+                  <Briefcase size={20} strokeWidth={1.5} />
+                </span>
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="top" align="center">作品集</TooltipContent>
+          </TooltipRoot>
+
+          {/* GitHub */}
+          <TooltipRoot>
+            <TooltipTrigger asChild>
+              <a
+                ref={(el) => setItemRef("github", el)}
+                href="https://github.com/Lcpt7"
+                target="_blank"
+                rel="noopener noreferrer"
+                onMouseEnter={() => handleMouseEnter("github")}
+                onMouseLeave={handleMouseLeave}
+                className="relative flex items-center justify-center rounded-full transition-all duration-75"
+                style={{
+                  width: `${46 + (getScale(itemRefs.current.get("github")) - 1) * 24}px`,
+                  height: `${46 + (getScale(itemRefs.current.get("github")) - 1) * 24}px`,
+                  zIndex: getScale(itemRefs.current.get("github")) > 1.2 ? 10 : 1,
+                  WebkitTapHighlightColor: "transparent",
+                  color: hoveredId === "github" ? "var(--color-foreground)" : "var(--color-muted)",
+                }}
+              >
+                <span
+                  className="block transition-all duration-75"
+                  style={{
+                    transform: `scale(${getScale(itemRefs.current.get("github"))}) translateY(${getScale(itemRefs.current.get("github")) > 1 ? -(getScale(itemRefs.current.get("github")) - 1) * 14 : 0}px)`,
+                  }}
+                >
+                  <GithubIcon />
+                </span>
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="top" align="center">GitHub</TooltipContent>
+          </TooltipRoot>
 
           <div className="w-px h-8 mx-1" style={{ background: "var(--vision-glass-border)", opacity: 0.3 }} />
 
+          {/* 主题切换 */}
           <TooltipRoot>
             <TooltipTrigger asChild>
               <button
