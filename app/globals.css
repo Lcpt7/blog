@@ -19,10 +19,33 @@ html {
   --gradient-from: #ededf2;
   --gradient-via: rgba(237, 237, 242, 0.65);
   --gradient-to: rgba(237, 237, 242, 0.15);
-  /* Liquid Glass tokens */
-  --lg-bg: rgba(255, 255, 255, 0.035);
-  --lg-border: rgba(255, 255, 255, 0.08);
   --color-background-glass: rgba(5, 5, 8, 0.6);
+  /* BorderGlow card tokens */
+  --card-bg: #120f17;
+  --card-border: rgba(255, 255, 255, 0.15);
+  --card-shadow:
+    rgba(0, 0, 0, 0.1) 0px 1px 2px,
+    rgba(0, 0, 0, 0.1) 0px 2px 4px,
+    rgba(0, 0, 0, 0.1) 0px 4px 8px,
+    rgba(0, 0, 0, 0.1) 0px 8px 16px,
+    rgba(0, 0, 0, 0.1) 0px 16px 32px,
+    rgba(0, 0, 0, 0.1) 0px 32px 64px;
+  --card-glow-color: hsl(40 80 80 / 100%);
+  --card-glow-color-60: hsl(40 80 80 / 60%);
+  --card-glow-color-50: hsl(40 80 80 / 50%);
+  --card-glow-color-40: hsl(40 80 80 / 40%);
+  --card-glow-color-30: hsl(40 80 80 / 30%);
+  --card-glow-color-20: hsl(40 80 80 / 20%);
+  --card-glow-color-10: hsl(40 80 80 / 10%);
+  --card-gradient-one: radial-gradient(at 80% 55%, #c084fc 0px, transparent 50%);
+  --card-gradient-two: radial-gradient(at 69% 34%, #f472b6 0px, transparent 50%);
+  --card-gradient-three: radial-gradient(at 8% 6%, #38bdf8 0px, transparent 50%);
+  --card-gradient-four: radial-gradient(at 41% 38%, #c084fc 0px, transparent 50%);
+  --card-gradient-five: radial-gradient(at 86% 85%, #f472b6 0px, transparent 50%);
+  --card-gradient-six: radial-gradient(at 82% 18%, #38bdf8 0px, transparent 50%);
+  --card-gradient-seven: radial-gradient(at 51% 4%, #f472b6 0px, transparent 50%);
+  --card-gradient-base: linear-gradient(#c084fc 0 100%);
+  --card-fill-opacity: 0.5;
 }
 
 html[data-theme="light"] {
@@ -36,44 +59,40 @@ html[data-theme="light"] {
   --gradient-from: #18181b;
   --gradient-via: rgba(24, 24, 27, 0.60);
   --gradient-to: rgba(24, 24, 27, 0.10);
-  --lg-bg: rgba(255, 255, 255, 0.50);
-  --lg-border: rgba(0, 0, 0, 0.04);
   --color-background-glass: rgba(245, 245, 250, 0.6);
+  --card-bg: #ffffff;
+  --card-border: rgba(24, 24, 27, 0.12);
+  --card-shadow:
+    rgba(24, 24, 27, 0.04) 0px 1px 2px,
+    rgba(24, 24, 27, 0.04) 0px 2px 4px,
+    rgba(24, 24, 27, 0.04) 0px 4px 8px,
+    rgba(24, 24, 27, 0.04) 0px 8px 16px,
+    rgba(24, 24, 27, 0.05) 0px 16px 32px,
+    rgba(24, 24, 27, 0.06) 0px 32px 64px;
+  --card-glow-color: hsl(222 80 58 / 100%);
+  --card-glow-color-60: hsl(222 80 58 / 60%);
+  --card-glow-color-50: hsl(222 80 58 / 50%);
+  --card-glow-color-40: hsl(222 80 58 / 40%);
+  --card-glow-color-30: hsl(222 80 58 / 30%);
+  --card-glow-color-20: hsl(222 80 58 / 20%);
+  --card-glow-color-10: hsl(222 80 58 / 10%);
+  --card-gradient-one: radial-gradient(at 80% 55%, #6366f1 0px, transparent 50%);
+  --card-gradient-two: radial-gradient(at 69% 34%, #38bdf8 0px, transparent 50%);
+  --card-gradient-three: radial-gradient(at 8% 6%, #2563eb 0px, transparent 50%);
+  --card-gradient-four: radial-gradient(at 41% 38%, #6366f1 0px, transparent 50%);
+  --card-gradient-five: radial-gradient(at 86% 85%, #38bdf8 0px, transparent 50%);
+  --card-gradient-six: radial-gradient(at 82% 18%, #2563eb 0px, transparent 50%);
+  --card-gradient-seven: radial-gradient(at 51% 4%, #38bdf8 0px, transparent 50%);
+  --card-gradient-base: linear-gradient(#6366f1 0 100%);
+  --card-fill-opacity: 0.4;
 }
 
-/* ── Liquid Glass Card ──
-   Inspired by Apple WWDC 2025 Liquid Glass design language:
-   frosted surface + subtle inner shine + outer glow border */
+/* Card content layer. BorderGlow owns the surface, border, glow, and shadow. */
 .lg-card {
   position: relative;
-  background: var(--lg-bg);
-  backdrop-filter: blur(40px) saturate(1.4);
-  -webkit-backdrop-filter: blur(40px) saturate(1.4);
-  border: 1px solid var(--lg-border);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow:
-    0 0 0 1px var(--lg-border),
-    0 4px 24px -8px rgba(0, 0, 0, 0.3);
-}
-@media (min-width: 640px) {
-  .lg-card { border-radius: 1.25rem; }
 }
 .lg-card > * { position: relative; z-index: 2; }
 
-.lg-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.10),
-    0 8px 32px -8px rgba(0, 0, 0, 0.40);
-  transform: translateY(-1px);
-}
-html[data-theme="light"] .lg-card:hover {
-  background: rgba(255, 255, 255, 0.70);
-  border-color: rgba(0, 0, 0, 0.08);
-}
 
 /* ── Vision-glass (nav / pills only) ── */
 .vision-glass {

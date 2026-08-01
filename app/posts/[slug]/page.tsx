@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllPosts, getAllSlugs, getPostBySlug } from "@/lib/posts";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import BorderGlow from "@/components/ui/BorderGlow";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -74,34 +75,40 @@ export default async function PostPage({ params }: PageProps) {
         </header>
 
         {/* Content card */}
-        <div className="lg-card p-6 sm:p-10 md:p-12 !rounded-2xl sm:!rounded-3xl !shadow-2xl">
-          <MarkdownRenderer content={post.content} />
-        </div>
+        <BorderGlow>
+          <div className="lg-card p-6 sm:p-10 md:p-12">
+            <MarkdownRenderer content={post.content} />
+          </div>
+        </BorderGlow>
 
         {/* Prev / Next */}
         {(prevPost || nextPost) && (
           <nav className="mt-12 grid grid-cols-2 gap-4">
             {prevPost ? (
-              <Link href={`/posts/${prevPost.slug}`} className="lg-card p-4 sm:p-5 group text-left col-start-1 block">
-                <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: "var(--color-muted)" }}>
-                  ← 上一篇
-                </span>
-                <h3 className="mt-2 text-sm font-medium leading-snug transition-colors duration-300 group-hover:text-[var(--color-accent)]"
-                    style={{ color: "var(--color-foreground)" }}>
-                  {prevPost.title}
-                </h3>
-              </Link>
+              <BorderGlow className="fill-height">
+                <Link href={`/posts/${prevPost.slug}`} className="lg-card p-4 sm:p-5 group text-left block h-full">
+                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: "var(--color-muted)" }}>
+                    ← 上一篇
+                  </span>
+                  <h3 className="mt-2 text-sm font-medium leading-snug transition-colors duration-300 group-hover:text-[var(--color-accent)]"
+                      style={{ color: "var(--color-foreground)" }}>
+                    {prevPost.title}
+                  </h3>
+                </Link>
+              </BorderGlow>
             ) : <div />}
             {nextPost ? (
-              <Link href={`/posts/${nextPost.slug}`} className="lg-card p-4 sm:p-5 group text-right col-start-2 block">
-                <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: "var(--color-muted)" }}>
-                  下一篇 →
-                </span>
-                <h3 className="mt-2 text-sm font-medium leading-snug transition-colors duration-300 group-hover:text-[var(--color-accent)]"
-                    style={{ color: "var(--color-foreground)" }}>
-                  {nextPost.title}
-                </h3>
-              </Link>
+              <BorderGlow className="fill-height">
+                <Link href={`/posts/${nextPost.slug}`} className="lg-card p-4 sm:p-5 group text-right block h-full">
+                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: "var(--color-muted)" }}>
+                    下一篇 →
+                  </span>
+                  <h3 className="mt-2 text-sm font-medium leading-snug transition-colors duration-300 group-hover:text-[var(--color-accent)]"
+                      style={{ color: "var(--color-foreground)" }}>
+                    {nextPost.title}
+                  </h3>
+                </Link>
+              </BorderGlow>
             ) : <div />}
           </nav>
         )}
